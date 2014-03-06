@@ -116,7 +116,7 @@ function push_notifications_schema() {
   );
 
   $schema['push_notifications_badge'] = array(
-    'description' => 'Queue for scheduled push notifications',
+    'description' => 'Stores device tokens badge',
     'fields' => array(
       'token' => array(
         'description' => 'Device Token',

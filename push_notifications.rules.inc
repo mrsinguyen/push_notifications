@@ -1,9 +1,9 @@
 <?php
+
 /**
  * @file
  * Administration Events Rule for Push Notifications.
  */
-
 
 /**
  * Implements hook_rules_action_info().
@@ -24,19 +24,28 @@ function push_notifications_rules_action_info() {
         ),
       ),
     ),
+    'push_notifications_update_badge_by_token' => array(
+      'label' => t('Update badge by token'),
+      'group' => t('Push notification'),
+      'parameter' => array(
+        'tokens' => array(
+          'type' => 'text',
+          'label' => t('Tokens'),
+          'description' => t('Registration IDs, comma-separated'),
+        ),
+      ),
+    ),
   );
   return $items;
 }
 
-
-
 /**
  * Implements hook_rules_event_info().
  */
-function push_notifications_rules_event_info(){
+function push_notifications_rules_event_info() {
   $events = array();
 
-  $events['push_notifications_before_token_insert'] = array (
+  $events['push_notifications_before_token_insert'] = array(
     'label' => t('Before saving a new device token'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -48,7 +57,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_after_token_insert'] = array (
+  $events['push_notifications_after_token_insert'] = array(
     'label' => t('After saving a new device token'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -61,7 +70,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_before_token_delete'] = array (
+  $events['push_notifications_before_token_delete'] = array(
     'label' => t('Before deleting a device token'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -71,7 +80,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_after_token_delete'] = array (
+  $events['push_notifications_after_token_delete'] = array(
     'label' => t('After deleting a device token'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -81,7 +90,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_after_apns_feedback'] = array (
+  $events['push_notifications_after_apns_feedback'] = array(
     'label' => t('iOS feedback service was completed'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -91,7 +100,7 @@ function push_notifications_rules_event_info(){
   );
 
 
-  $events['push_notifications_after_apns_send'] = array (
+  $events['push_notifications_after_apns_send'] = array(
     'label' => t('After sending an iOS push notification (APNS)'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -105,7 +114,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_after_c2dm_send'] = array (
+  $events['push_notifications_after_c2dm_send'] = array(
     'label' => t('After sending an Android push notification (C2DM)'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',
@@ -119,7 +128,7 @@ function push_notifications_rules_event_info(){
     ),
   );
 
-  $events['push_notifications_after_gcm_send'] = array (
+  $events['push_notifications_after_gcm_send'] = array(
     'label' => t('After sending an Android push notification (GCM)'),
     'group' => t('Push Notifications'),
     'module' => 'push_notifications',

@@ -273,11 +273,23 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
 /**
  * Update badge by token
  */
-function push_notifications_update_badge_by_token($token = '') {
+function push_notifications_update_badge_by_token($tokens) {
+  $tokens = array_filter(explode(',', $tokens));
+  push_notifications_debug('Tokens update', $tokens);
+  foreach ($tokens as $v) {
+    $v = trim($v);
+    push_notifications_update_badge($v);
+  }
+}
+
+/**
+ * Update badge by token
+ */
+function push_notifications_update_badge($token) {
   db_update('push_notifications_badge')
       ->expression('badge', 'badge + 1')
       ->fields(array('timestamp' => REQUEST_TIME))
-      ->condition('token', $token)
+      ->condition('token', $token, '=')
       ->execute();
 }
 
@@ -302,7 +314,7 @@ function push_notifications_get_badge_by_token($token = '') {
   $query->condition('pnb.token', $token);
   $query->addField('pnb', 'badge');
   $result = $query->execute();
-  
+
   return $result->fetchField();
 }
 
@@ -1137,4 +1149,62 @@ function push_notifications_debug($category, $message) {
   if (variable_get('push_notifications_debug', false)) {
     watchdog('push_notifications debug', $category . "=" . var_export($message, true));
   }
+}
+
+/**
+ * Implements hook_token_info_alter().
+ */
+function push_notifications_token_info_alter(&$data) {
+
+  $data['tokens']['site']['registration-ids'] = array(
+    'name' => t('Registration ids'),
+    'description' => t('Device Token'),
+  );
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function push_notifications_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  $url_options = array('absolute' => TRUE);
+
+  if (isset($options['language'])) {
+    $url_options['language'] = $options['language'];
+    $language_code = $options['language']->language;
+  } else {
+    $language_code = NULL;
+  }
+
+  $sanitize = !empty($options['sanitize']);
+
+  $replacements = array();
+
+  switch ($type) {
+
+    case 'site':
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'registration-ids':
+            $replacements[$original] = push_notifications_get_badge_tokens();
+            break;
+        }
+      }
+      break;
+  }
+
+  return $replacements;
+}
+
+/**
+ * 
+ */
+function push_notifications_get_badge_tokens() {
+  $tokens = '';
+  $result = db_query("SELECT token FROM {push_notifications_badge}");
+  while ($row = $result->fetchAssoc()) {
+    $tokens .= $row['token'] . ", ";
+  }
+  $tokens = substr($tokens, 0, strlen($tokens) - 1);
+
+  return $tokens;
 }
