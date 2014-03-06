@@ -274,14 +274,36 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
  * Update badge by token
  */
 function push_notifications_update_badge_by_token($token = '') {
-  
+  db_update('push_notifications_badge')
+      ->expression('badge', 'badge + 1')
+      ->fields(array('timestamp' => REQUEST_TIME))
+      ->condition('token', $token)
+      ->execute();
+}
+
+/**
+ * Reset badge by token
+ */
+function push_notifications_reset_badge_by_token($token = '') {
+  db_update('push_notifications_badge')
+      ->fields(array(
+        'badge' => 0,
+        'timestamp' => REQUEST_TIME)
+      )
+      ->condition('token', $token)
+      ->execute();
 }
 
 /**
  * Get badge by token
  */
 function push_notifications_get_badge_by_token($token = '') {
+  $query = db_select('push_notifications_badge', 'pnb');
+  $query->condition('pnb.token', $token);
+  $query->addField('pnb', 'badge');
+  $result = $query->execute();
   
+  return $result->fetchField();
 }
 
 /**
