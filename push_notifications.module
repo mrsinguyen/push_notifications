@@ -4,7 +4,6 @@
  * @file
  * Push Notifications functionality.
  */
-
 /**
  * Constants Definition.
  */
@@ -68,7 +67,6 @@ define('PUSH_NOTIFICATIONS_GCM_API_KEY', variable_get('push_notifications_gcm_ap
 // GCM Server Post URL
 define('PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL', variable_get('push_notifications_gcm_server_post_url', 'https://android.googleapis.com/gcm/send'));
 
-
 /**
  * Implements of hook_menu().
  */
@@ -123,8 +121,6 @@ function push_notifications_menu() {
   return $items;
 }
 
-
-
 /**
  * Implements of hook_cron().
  */
@@ -133,8 +129,6 @@ function push_notifications_cron() {
     push_notifications_apns_feedback_service();
   }
 }
-
-
 
 /**
  * Implements hook_permission().
@@ -155,8 +149,6 @@ function push_notifications_permission() {
     ),
   );
 }
-
-
 
 /**
  * Implements hook_services_resources().
@@ -222,8 +214,6 @@ function push_notifications_services_resources() {
   );
 }
 
-
-
 /**
  * Implements hook_privatemsg_message_insert.
  */
@@ -243,8 +233,6 @@ function push_notifications_privatemsg_message_insert($message) {
     push_notifications_send_message($recipients, $payload);
   }
 }
-
-
 
 /**
  * Determine if this user has already stored a token
@@ -274,8 +262,7 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
   if ($exclude) {
     $query->condition('pnt.uid', $uid, '!=');
     $query->range(0, 1);
-  }
-  else {
+  } else {
     $query->condition('pnt.uid', $uid);
   }
 
@@ -283,7 +270,19 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
   return $result->fetchField();
 }
 
+/**
+ * Update badge by token
+ */
+function push_notifications_update_badge_by_token($token = '') {
+  
+}
 
+/**
+ * Get badge by token
+ */
+function push_notifications_get_badge_by_token($token = '') {
+  
+}
 
 /**
  * Store a token in the database.
@@ -302,8 +301,8 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
  *   Failure to write a record will return FALSE, Otherwise SAVED_NEW.
  */
 function push_notifications_store_token($token = '', $type_id = '', $uid = '', $language = '') {
-   // Let modules modify the token before it is saved to the database.
-  foreach(module_implements('push_notifications_store_token') as $module) {
+  // Let modules modify the token before it is saved to the database.
+  foreach (module_implements('push_notifications_store_token') as $module) {
     $function = $module . '_push_notifications_store_token';
     $function($token, $type_id, $uid);
   }
@@ -311,11 +310,11 @@ function push_notifications_store_token($token = '', $type_id = '', $uid = '', $
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_before_token_insert', array(
-        'token' => $token,
-        'type_id' => $type_id,
-        'uid' => $uid,
-        'language' => $language,
-      )
+      'token' => $token,
+      'type_id' => $type_id,
+      'uid' => $uid,
+      'language' => $language,
+        )
     );
   }
 
@@ -329,7 +328,7 @@ function push_notifications_store_token($token = '', $type_id = '', $uid = '', $
     $language = $default_language->language;
   }
 
-  // Write record.
+  // Write record to push_notifications_tokens
   $table = 'push_notifications_tokens';
   $record = new stdClass();
   $record->token = $token;
@@ -339,22 +338,28 @@ function push_notifications_store_token($token = '', $type_id = '', $uid = '', $
   $record->timestamp = time();
   $result = drupal_write_record($table, $record);
 
+  // Write record to push_notifications_badge
+  $table_badge = 'push_notifications_badge';
+  $record_badge = new stdClass();
+  $record_badge->token = $token;
+  $record_badge->badge = 0;
+  $record_badge->timestamp = time();
+  drupal_write_record($table_badge, $record_badge);
+
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_token_insert', array(
-        'token' => $token,
-        'type_id' => $type_id,
-        'uid' => $uid,
-        'language' => $language,
-        'result' => $result,
-      )
+      'token' => $token,
+      'type_id' => $type_id,
+      'uid' => $uid,
+      'language' => $language,
+      'result' => $result,
+        )
     );
   }
 
   return $result;
 }
-
-
 
 /**
  * Open an APNS connection.
@@ -382,13 +387,10 @@ function push_notifications_open_apns() {
   if (!$apns) {
     watchdog('push_notifications', 'Connection to Apple Notification Server failed.', NULL, WATCHDOG_ERROR);
     return FALSE;
-  }
-  else {
+  } else {
     return $apns;
   }
 }
-
-
 
 /**
  * Check size of a push notification payload.
@@ -414,8 +416,6 @@ function push_notifications_check_payload_size($payload = '') {
   return $size_valid;
 }
 
-
-
 /**
  * Send out push notifications, switch automatically between delivery method.
  *
@@ -430,7 +430,7 @@ function push_notifications_send_message($recipients, $message) {
   }
 
   // Let modules modify the message before it is sent.
-  foreach(module_implements('push_notifications_send_message') as $module) {
+  foreach (module_implements('push_notifications_send_message') as $module) {
     $function = $module . '_push_notifications_send_message';
     $function($message);
   }
@@ -461,12 +461,12 @@ function push_notifications_send_message($recipients, $message) {
   foreach ($tokens as $token) {
     switch ($token['type']) {
       case PUSH_NOTIFICATIONS_TYPE_ID_IOS:
-      $tokens_ios[] = $token['token'];
-      break;
+        $tokens_ios[] = $token['token'];
+        break;
 
       case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID:
-      $tokens_android[] = $token['token'];
-      break;
+        $tokens_android[] = $token['token'];
+        break;
     }
   }
 
@@ -481,17 +481,15 @@ function push_notifications_send_message($recipients, $message) {
     // Determine which method to use for Google push notifications.
     switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
-      $result = push_notifications_c2dm_send_message($tokens_android, $payload);
-      break;
+        $result = push_notifications_c2dm_send_message($tokens_android, $payload);
+        break;
 
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
-      $result = push_notifications_gcm_send_message($tokens_android, $payload);
-      break;
+        $result = push_notifications_gcm_send_message($tokens_android, $payload);
+        break;
     }
   }
 }
-
-
 
 /**
  * Send out push notifications through APNS.
@@ -559,14 +557,13 @@ function push_notifications_apns_send_message($tokens, $payload) {
     }
     $stream_counter++;
 
-    $result['count_attempted']++;
+    $result['count_attempted'] ++;
     $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . chr(0) . chr(strlen($payload_apns)) . $payload_apns;
     // Write the payload to the currently active streaming connection.
     $success = fwrite($apns, $apns_message);
     if ($success) {
-      $result['count_success']++;
-    }
-    elseif ($success == 0 || $success == FALSE || $success < strlen($apns_message)) {
+      $result['count_success'] ++;
+    } elseif ($success == 0 || $success == FALSE || $success < strlen($apns_message)) {
       $error_message = array(
         'message' => t('APNS message could not be sent.'),
         'token' => 'Token: ' . $token,
@@ -593,30 +590,29 @@ function push_notifications_apns_send_message($tokens, $payload) {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_apns_send', array(
-        'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_IOS,
-        'payload' => $payload,
-        'count_attempted' => $result['count_attempted'],
-        'count_success' => $result['count_success'],
-        'success' => $result['success'],
-        'result_message' => $result['message'],
-      )
+      'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_IOS,
+      'payload' => $payload,
+      'count_attempted' => $result['count_attempted'],
+      'count_success' => $result['count_success'],
+      'success' => $result['success'],
+      'result_message' => $result['message'],
+        )
     );
   }
 
   return $result;
 }
 
-
 /**
  * Determine the auth string from C2DM server.
  */
 function push_notifications_c2dm_token() {
   $data = array(
-    'Email'         => PUSH_NOTIFICATIONS_C2DM_USERNAME,
-    'Passwd'        => PUSH_NOTIFICATIONS_C2DM_PASSWORD,
-    'accountType'   => 'HOSTED_OR_GOOGLE',
-    'source'        => 'Company-AppName-Version',
-    'service'       => 'ac2dm',
+    'Email' => PUSH_NOTIFICATIONS_C2DM_USERNAME,
+    'Passwd' => PUSH_NOTIFICATIONS_C2DM_PASSWORD,
+    'accountType' => 'HOSTED_OR_GOOGLE',
+    'source' => 'Company-AppName-Version',
+    'service' => 'ac2dm',
   );
 
   $curl = curl_init();
@@ -635,14 +631,10 @@ function push_notifications_c2dm_token() {
 
   if (!$auth_token) {
     watchdog('push_notifications', 'Google C2DM Server did not provide an authentication token.', NULL, WATCHDOG_ERROR);
-  }
-  else {
+  } else {
     return $auth_token;
   }
 }
-
-
-
 
 /**
  * Send out push notifications through C2DM.
@@ -687,7 +679,7 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
 
   // Send a push notification to every recipient.
   foreach ($tokens as $token) {
-    $result['count_attempted']++;
+    $result['count_attempted'] ++;
 
     // Convert the payload into the correct format for C2DM payloads.
     // Prefill an array with values from other modules first.
@@ -728,7 +720,7 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
     // Success if the http response status is 200 and the response
     // data does not containt the word "Error".
     if ($info['http_code'] == 200 && (isset($response) && !preg_match('/Error/', $response))) {
-      $result['count_success']++;
+      $result['count_success'] ++;
     }
   }
 
@@ -738,13 +730,13 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_c2dm_send', array(
-        'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_ANDROID,
-        'payload' => $payload,
-        'count_attempted' => $result['count_attempted'],
-        'count_success' => $result['count_success'],
-        'success' => $result['success'],
-        'result_message' => $result['message'],
-      )
+      'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_ANDROID,
+      'payload' => $payload,
+      'count_attempted' => $result['count_attempted'],
+      'count_success' => $result['count_success'],
+      'success' => $result['success'],
+      'result_message' => $result['message'],
+        )
     );
   }
 
@@ -856,19 +848,18 @@ function push_notifications_gcm_send_message($tokens, $payload) {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_gcm_send', array(
-        'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_ANDROID,
-        'payload' => $payload,
-        'count_attempted' => $result['count_attempted'],
-        'count_success' => $result['count_success'],
-        'success' => $result['success'],
-        'result_message' => $result['message'],
-      )
+      'type_id' => PUSH_NOTIFICATIONS_TYPE_ID_ANDROID,
+      'payload' => $payload,
+      'count_attempted' => $result['count_attempted'],
+      'count_success' => $result['count_success'],
+      'success' => $result['success'],
+      'result_message' => $result['message'],
+        )
     );
   }
 
   return $result;
 }
-
 
 /**
  * Determine all recipients from a specific device type.
@@ -914,8 +905,6 @@ function push_notifications_get_tokens($type_id = '', $language = FALSE, $raw = 
   }
 }
 
-
-
 /**
  * Determine all tokens for a specfic user.
  *
@@ -949,8 +938,6 @@ function push_notification_get_user_tokens($uid = '') {
   return $tokens;
 }
 
-
-
 /**
  * Determine any languages used in the push
  * notifications table.
@@ -981,8 +968,6 @@ function push_notifications_used_languages() {
   return $used_languages;
 }
 
-
-
 /**
  * Delete a token.
  *
@@ -1004,9 +989,9 @@ function push_notifications_purge_token($token = '', $type_id = '') {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_before_token_delete', array(
-        'token' => $token,
-        'type_id' => $type_id,
-      )
+      'token' => $token,
+      'type_id' => $type_id,
+        )
     );
   }
 
@@ -1017,16 +1002,14 @@ function push_notifications_purge_token($token = '', $type_id = '') {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_token_delete', array(
-        'token' => $token,
-        'type_id' => $type_id,
-      )
+      'token' => $token,
+      'type_id' => $type_id,
+        )
     );
   }
 
   return $result;
 }
-
-
 
 /**
  * Connect to Apple's feedback server to remove unused device tokens.
@@ -1054,7 +1037,7 @@ function push_notifications_apns_feedback_service() {
 
   // Gather expired tokens in an array
   $tokens = array();
-    while (!feof($apns)) {
+  while (!feof($apns)) {
     $data = fread($apns, 38);
     if (strlen($data)) {
       $tokens[] = unpack("N1timestamp/n1length/H*devtoken", $data);
@@ -1079,14 +1062,13 @@ function push_notifications_apns_feedback_service() {
   // Invoke rules.
   if (module_exists('rules')) {
     rules_invoke_event_by_args('push_notifications_after_apns_feedback', array(
-        'counter' => $counter,
-      )
+      'counter' => $counter,
+        )
     );
   }
 
   // Give some feedback after the process finished.
   watchdog('push_notifications', '!count were removed after pulling the Apple feedback service.', array('!count' => $counter));
-
 }
 
 /**
@@ -1111,11 +1093,9 @@ function _push_notifications_get_apns_certificate() {
   return $path;
 }
 
-
-
 /**
-* Generate and set the random file ending for APNS certificates.
-*/
+ * Generate and set the random file ending for APNS certificates.
+ */
 function _push_notifications_set_random_certificate_string() {
   // Generate a random 10-digit string.
   $random_string = substr(md5(microtime()), 0, 10);
