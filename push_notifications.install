@@ -42,6 +42,7 @@ function push_notifications_uninstall() {
   variable_del('push_notifications_gcm_server_post_url');
   variable_del('push_notifications_privatemsg_integration');
   variable_del('push_notifications_require_enabled_language');
+  variable_del('push_notifications_debug');
 }
 
 

@@ -1121,3 +1121,12 @@ function _push_notifications_set_random_certificate_string() {
   $random_string = substr(md5(microtime()), 0, 10);
   variable_set('push_notifications_apns_certificate_random', '-' . $random_string);
 }
+
+/**
+ * Debug mode
+ */
+function push_notifications_debug($category, $message) {
+  if (variable_get('push_notifications_debug', false)) {
+    watchdog('push_notifications debug', $category . "=" . var_export($message, true));
+  }
+}

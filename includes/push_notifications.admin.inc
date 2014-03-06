@@ -22,16 +22,17 @@ function push_notifications_admin_overview_form($form_state) {
   );
 
   foreach ($result as $data) {
-    $counts['total']++;
+    $counts['total'] ++;
     switch ($data->type) {
-      case PUSH_NOTIFICATIONS_TYPE_ID_IOS: $counts['ios']++; break;
-      case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID: $counts['android']++; break;
+      case PUSH_NOTIFICATIONS_TYPE_ID_IOS: $counts['ios'] ++;
+        break;
+      case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID: $counts['android'] ++;
+        break;
     }
     if ($data->uid == 0) {
-      $counts['anonymous']++;
-    }
-    else {
-      $counts['registered']++;
+      $counts['anonymous'] ++;
+    } else {
+      $counts['registered'] ++;
     }
   }
 
@@ -85,8 +86,7 @@ function push_notifications_admin_overview_form($form_state) {
   if (!empty($languages_used)) {
     unset($languages_used[0]);
     $languages_markup = theme('item_list', array('items' => $languages_used));
-  }
-  else {
+  } else {
     $languages_markup = t('No tokens stored or no tokens with a language association stored');
   }
 
@@ -143,8 +143,7 @@ function push_notifications_admin_form($form_state) {
 
   if (variable_get('push_notifications_apns_certificate_random', '') == '') {
     $regenerate_certificate_string_description = t('Your certificate name is currently set to the default. To increase security, click here to create a custom name for your APNS certificates. Please note that you will have to change the filenames for both certificate files afterwards.');
-  }
-  else {
+  } else {
     $regenerate_certificate_string_description = t('You are already using a random certificate name. Click here to create a new random name for your APNS certificates. Please note that you will have to update the filenames for both certificate files accordingly.');
   }
   $form['configuration_apns']['regenerate_certificate_string_description'] = array(
@@ -214,9 +213,9 @@ function push_notifications_admin_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Cloud 2 Device Messaging Settings'),
     '#description' => t('Enter your C2DM credentials.'),
-      '#attributes' => array(
-        'style' => (PUSH_NOTIFICATIONS_GOOGLE_TYPE != PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM) ? 'display:none' : '',
-      ),
+    '#attributes' => array(
+      'style' => (PUSH_NOTIFICATIONS_GOOGLE_TYPE != PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM) ? 'display:none' : '',
+    ),
   );
 
   $form['configuration_c2dm']['c2dm_credentials']['push_notifications_c2dm_username'] = array(
@@ -237,10 +236,9 @@ function push_notifications_admin_form($form_state) {
     '#type' => 'fieldset',
     '#title' => t('Google Cloud Messaging'),
     '#description' => t('Enter your Google Cloud Messaging details'),
-      '#attributes' => array(
-        'style' => (PUSH_NOTIFICATIONS_GOOGLE_TYPE != PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM) ? 'display:none' : '',
-      ),
-
+    '#attributes' => array(
+      'style' => (PUSH_NOTIFICATIONS_GOOGLE_TYPE != PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM) ? 'display:none' : '',
+    ),
   );
 
   $form['configuration_c2dm']['gcm_credentials']['push_notifications_gcm_api_key'] = array(
@@ -250,6 +248,17 @@ function push_notifications_admin_form($form_state) {
     '#default_value' => variable_get('push_notifications_gcm_api_key', ''),
   );
 
+  $form['configuration_debug'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Debug Mode'),
+  );
+  $form['configuration_debug']['push_notifications_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Push Notifications Debug'),
+    '#default_value' => variable_get('push_notifications_debug', false),
+    '#description' => t('Check if you want detailed debug messages into watchdog'),
+  );
+
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Save Configuration',
@@ -257,8 +266,6 @@ function push_notifications_admin_form($form_state) {
 
   return $form;
 }
-
-
 
 /**
  * Validation handler for push notification configuration form.
@@ -272,8 +279,6 @@ function push_notifications_admin_form_validate($form, &$form_state) {
     }
   }
 }
-
-
 
 /**
  * Submit callback for push notification configuration page.
@@ -317,8 +322,7 @@ function push_notifications_admin_form_submit($form, &$form_state) {
       $apns_cert_folder .= DIRECTORY_SEPARATOR;
     }
     variable_set('push_notifications_apns_certificate_folder', $apns_cert_folder);
-  }
-  else {
+  } else {
     variable_del('push_notifications_apns_certificate_folder');
   }
 
@@ -334,24 +338,23 @@ function push_notifications_admin_form_submit($form, &$form_state) {
   // Set the APNS stream limit.
   variable_set('push_notifications_apns_stream_context_limit', $form_state['values']['stream_context_limit']);
 
+  // Set the debug mode
+  variable_set('push_notifications_debug', $form_state['values']['push_notifications_debug']);
+
   $replacements = array(
     '@environment' => ($apns_environment) ? "Production" : "Development",
   );
   drupal_set_message(t('The APNS environment was successfully set to "@environment".', $replacements));
 }
 
-
-
 /**
-* Form callback for regenerating the APNS certificate string.
-*/
+ * Form callback for regenerating the APNS certificate string.
+ */
 function push_notifications_regenerate_certificate_string_submit($form, &$form_state) {
   _push_notifications_set_random_certificate_string();
   drupal_set_message('The names for your APNS certificates were successfully changed. Please rename both certificate files.');
   drupal_goto('admin/config/services/push_notifications/configure');
 }
-
-
 
 /**
  * Form callback for sending a mass-push notification.
@@ -409,8 +412,6 @@ function push_notifications_mass_push_form($form_state) {
   return $form;
 }
 
-
-
 /**
  * Validation handler for sending out a mass-push notification.
  */
@@ -443,8 +444,6 @@ function push_notifications_mass_push_form_validate($form, &$form_state) {
   }
 }
 
-
-
 /**
  * Submit handler for sending out a mass-push notification.
  */
@@ -458,13 +457,19 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
     // Get all iOS recipients.
     $tokens_ios = push_notifications_get_tokens(PUSH_NOTIFICATIONS_TYPE_ID_IOS, $language);
     if (!empty($tokens_ios)) {
+      // Example badge, default to test set 1
+      // @todo: Removed it
+      $badge = array('badge' => 1);
+      $payload_changed = array_merge($payload, $badge);
       // Convert the payload into the correct format for APNS.
-      $payload_apns = array('aps' => $payload);
+      $payload_apns = array('aps' => $payload_changed);
       $result = push_notifications_apns_send_message($tokens_ios, $payload_apns);
       $dsm_type = ($result['success']) ? 'status' : 'error';
       drupal_set_message($result['message'], $dsm_type);
-    }
-    else {
+
+      // Debug payload ios
+      push_notifications_debug('Send push (iOS): payload', $payload_apns);
+    } else {
       drupal_set_message(t('No iOS recipients found, potentially for this language.'));
     }
   }
@@ -474,20 +479,21 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
     // Get all Android recipients.
     $tokens_android = push_notifications_get_tokens(PUSH_NOTIFICATIONS_TYPE_ID_ANDROID, $language);
     if (!empty($tokens_android)) {
+      // Debug payload android
+      push_notifications_debug('Send push (Android): payload', $payload);
       // Determine which method to use for Google push notifications.
       switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
         case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
-        $result = push_notifications_c2dm_send_message($tokens_android, $payload);
-        break;
+          $result = push_notifications_c2dm_send_message($tokens_android, $payload);
+          break;
 
         case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
-        $result = push_notifications_gcm_send_message($tokens_android, $payload);
-        break;
+          $result = push_notifications_gcm_send_message($tokens_android, $payload);
+          break;
       }
       $dsm_type = ($result['success']) ? 'status' : 'error';
       drupal_set_message($result['message'], $dsm_type);
-    }
-    else {
+    } else {
       drupal_set_message(t('No Android recipients found, potentially for this language.'));
     }
   }
