@@ -469,6 +469,8 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
 
       // Debug payload ios
       push_notifications_debug('Send push (iOS): payload', $payload_apns);
+      // Debug token ios
+      push_notifications_debug('Token iOS', $tokens_ios);
     } else {
       drupal_set_message(t('No iOS recipients found, potentially for this language.'));
     }
@@ -481,6 +483,8 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
     if (!empty($tokens_android)) {
       // Debug payload android
       push_notifications_debug('Send push (Android): payload', $payload);
+      // Debug token android
+      push_notifications_debug('Token Android', $tokens_android);
       // Determine which method to use for Google push notifications.
       switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
         case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
