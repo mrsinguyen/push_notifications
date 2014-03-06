@@ -13,8 +13,6 @@ function push_notifications_install() {
   _push_notifications_set_random_certificate_string();
 }
 
-
-
 /**
  * Implements of hook_uninstall().
  */
@@ -44,8 +42,6 @@ function push_notifications_uninstall() {
   variable_del('push_notifications_require_enabled_language');
   variable_del('push_notifications_debug');
 }
-
-
 
 /**
  * Implements hook_field_scheme().
@@ -119,6 +115,32 @@ function push_notifications_schema() {
     ),
   );
 
+  $schema['push_notifications_badge'] = array(
+    'description' => 'Queue for scheduled push notifications',
+    'fields' => array(
+      'token' => array(
+        'description' => 'Device Token',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'badge' => array(
+        'description' => 'Badge',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'timestamp' => array(
+        'description' => 'Updated time',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('token'),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
   return $schema;
 }
 
@@ -184,4 +206,37 @@ function push_notifications_update_7003() {
   );
 
   db_change_field($table, $field, $field, $language_new);
+}
+
+/**
+ * Added table push_notifications_badge
+ */
+function push_notifications_update_7004() {
+  $schema['push_notifications_badge'] = array(
+    'description' => 'Queue for scheduled push notifications',
+    'fields' => array(
+      'token' => array(
+        'description' => 'Device Token',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'badge' => array(
+        'description' => 'Badge',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'timestamp' => array(
+        'description' => 'Updated time',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('token'),
+    'indexes' => array(
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
+  db_create_table('push_notifications_badge', $schema['push_notifications_badge']);
 }
