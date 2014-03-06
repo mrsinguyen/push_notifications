@@ -995,9 +995,15 @@ function push_notifications_purge_token($token = '', $type_id = '') {
     );
   }
 
+  // Delete token register
   $query = db_delete('push_notifications_tokens');
   $query->condition('token', $token);
   $result = $query->execute();
+
+  // Delete token badge
+  db_delete('push_notifications_badge')
+      ->condition('token', $token)
+      ->execute();
 
   // Invoke rules.
   if (module_exists('rules')) {
