@@ -321,18 +321,17 @@ function push_notifications_update_badge($token) {
  * Reset badge by token
  */
 function push_notifications_reset_badge_by_token($token) {
-  if(!empty($token)) {
+  if (!empty($token)) {
     db_update('push_notifications_badge')
-      ->fields(array(
-        'badge' => 0,
-        'timestamp' => REQUEST_TIME)
-      )
-      ->condition('token', $token)
-      ->execute();
+        ->fields(array(
+          'badge' => 0,
+          'timestamp' => REQUEST_TIME)
+        )
+        ->condition('token', $token)
+        ->execute();
   } else {
     return FALSE;
   }
-  
 }
 
 /**
@@ -555,6 +554,79 @@ function push_notifications_send_message($recipients, $message) {
 }
 
 /**
+ * Send out push notifications, switch automatically between delivery method.
+ *
+ * @param $recipients
+ *   Array of user ids.
+ * @param $message
+ *   Payload to send.
+ */
+function push_notifications_send_push_message($tokens, $message) {
+  if (!is_array($tokens) || !is_string($message)) {
+    return FALSE;
+  }
+
+  // Let modules modify the message before it is sent.
+  foreach (module_implements('push_notifications_send_push_message') as $module) {
+    $function = $module . '_push_notifications_send_push_message';
+    $function($message);
+  }
+
+  // Shorten the message to 255 characters / 8 bit.
+  $message = truncate_utf8($message, PUSH_NOTIFICATIONS_APNS_PAYLOAD_SIZE_LIMIT, TRUE, TRUE);
+
+  // Convert the payload into the correct format for delivery.
+  $payload = array(
+    'alert' => $message,
+  );
+
+  // Determine if any of the recipients have one or multiple tokens stored.
+  // Stop right here if none of these users have any tokens.
+  if (empty($tokens)) {
+    return FALSE;
+  }
+
+  // Group tokens into types.
+  $tokens_ios = array();
+  $tokens_android = array();
+  foreach ($tokens as $token) {
+    switch ($token['type']) {
+      case PUSH_NOTIFICATIONS_TYPE_ID_IOS:
+        $tokens_ios[] = $token['token'];
+        break;
+
+      case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID:
+        $tokens_android[] = $token['token'];
+        break;
+    }
+  }
+
+  // Send payload to iOS recipients.
+  if (!empty($tokens_ios)) {
+    // Convert the payload into the correct format for APNS.
+    $payload_apns = array('aps' => $payload);
+    
+    // Debug 
+    push_notifications_debug('Payload apns', $payload_apns);
+
+    $result = push_notifications_apns_send_message($tokens_ios, $payload_apns);
+  }
+  // Send payload to Android recipients if configured correctly.
+  if (!empty($tokens_android) && ((PUSH_NOTIFICATIONS_C2DM_USERNAME && PUSH_NOTIFICATIONS_C2DM_PASSWORD) || PUSH_NOTIFICATIONS_GCM_API_KEY)) {
+    // Determine which method to use for Google push notifications.
+    switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
+      case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
+        $result = push_notifications_c2dm_send_message($tokens_android, $payload);
+        break;
+
+      case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
+        $result = push_notifications_gcm_send_message($tokens_android, $payload);
+        break;
+    }
+  }
+}
+
+/**
  * Send out push notifications through APNS.
  *
  * @param $tokens
@@ -596,7 +668,7 @@ function push_notifications_apns_send_message($tokens, $payload) {
   if (!isset($payload_apns['aps']['sound'])) {
     $payload_apns['aps']['sound'] = PUSH_NOTIFICATIONS_APNS_NOTIFICATION_SOUND;
   }
-  
+
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
 

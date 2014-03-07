@@ -10,13 +10,14 @@
  */
 function push_notifications_rules_action_info() {
   $items = array(
-    'push_notifications_send_message' => array(
+    'push_notifications_send_push_message' => array(
       'label' => t('Send a push notification'),
       'group' => t('Push notification'),
       'parameter' => array(
-        'uids' => array(
-          'type' => 'list<integer>',
-          'label' => t('Array of uids'),
+        'tokens' => array(
+          'type' => 'text',
+          'label' => t('Tokens'),
+          'description' => t('Registration IDs, comma-separated'),
         ),
         'payload' => array(
           'type' => 'text',
