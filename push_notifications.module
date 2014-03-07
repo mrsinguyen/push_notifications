@@ -147,6 +147,10 @@ function push_notifications_permission() {
       'title' => t('Send push notifications'),
       'description' => t('Allow users to send a push notification to devices'),
     ),
+    'reset device token' => array(
+      'title' => t('Reset Badge Device Token'),
+      'description' => t('Allows users to reset a badge device token.'),
+    ),
   );
 }
 
@@ -199,6 +203,26 @@ function push_notifications_services_resources() {
           'name' => 'includes/push_notifications.service'
         ),
         'access arguments' => array('remove device token'),
+        'access arguments append' => FALSE,
+        'args' => array(
+          array(
+            'name' => 'token',
+            'type' => 'string',
+            'description' => 'Device Token',
+            'optional' => FALSE,
+            'source' => array('path' => '0'),
+          ),
+        ),
+      ),
+      'update' => array(
+        'help' => 'Reset a badge a device token. Only needs the token.',
+        'callback' => '_push_notifications_service_reset_badge_device_token',
+        'file' => array(
+          'type' => 'inc',
+          'module' => 'push_notifications',
+          'name' => 'includes/push_notifications.service'
+        ),
+        'access arguments' => array('reset device token'),
         'access arguments append' => FALSE,
         'args' => array(
           array(
@@ -296,14 +320,19 @@ function push_notifications_update_badge($token) {
 /**
  * Reset badge by token
  */
-function push_notifications_reset_badge_by_token($token = '') {
-  db_update('push_notifications_badge')
+function push_notifications_reset_badge_by_token($token) {
+  if(!empty($token)) {
+    db_update('push_notifications_badge')
       ->fields(array(
         'badge' => 0,
         'timestamp' => REQUEST_TIME)
       )
       ->condition('token', $token)
       ->execute();
+  } else {
+    return FALSE;
+  }
+  
 }
 
 /**
@@ -567,7 +596,7 @@ function push_notifications_apns_send_message($tokens, $payload) {
   if (!isset($payload_apns['aps']['sound'])) {
     $payload_apns['aps']['sound'] = PUSH_NOTIFICATIONS_APNS_NOTIFICATION_SOUND;
   }
-
+  
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
 

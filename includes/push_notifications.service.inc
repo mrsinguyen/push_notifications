@@ -38,8 +38,7 @@ function _push_notifications_service_create_device_token($data) {
       }
     }
     $language = $data['language'];
-  }
-  else {
+  } else {
     $default_language = language_default();
     $language = $default_language->language;
   }
@@ -55,8 +54,7 @@ function _push_notifications_service_create_device_token($data) {
   // Convert type to integer value.
   if ($type != 'ios' && $type != 'android') {
     return services_error(t('Type not supported.'), 400);
-  }
-  else {
+  } else {
     $type_id = ($type == 'ios') ? PUSH_NOTIFICATIONS_TYPE_ID_IOS : PUSH_NOTIFICATIONS_TYPE_ID_ANDROID;
   }
 
@@ -73,8 +71,7 @@ function _push_notifications_service_create_device_token($data) {
 
   if ($result === FALSE) {
     return services_error(t('This token could not be stored.'), 400);
-  }
-  else {
+  } else {
     return array(
       'success' => 1,
       'message' => 'This token was successfully stored in the database.'
@@ -97,5 +94,23 @@ function _push_notifications_service_delete_device_token($token) {
   return array(
     'success' => 1,
     'message' => 'The token was successfully removed from the database.'
+  );
+}
+
+/**
+ * reset an already badage registered token.
+ *
+ * @param $data
+ *
+ * @return array|mixed
+ */
+function _push_notifications_service_reset_badge_device_token($token) {
+  if (empty($token)) {
+    return services_error(t('Token parameter is missing.'), 400);
+  }
+  push_notifications_reset_badge_by_token($token);
+  return array(
+    'success' => 1,
+    'message' => 'The badge was successfully reset to 0 from the database.'
   );
 }

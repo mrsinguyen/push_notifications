@@ -130,3 +130,8 @@ Payload: token={token}&type={type}
 http://my-drupal-installation/services_module_endpoint/push_notifications/{token}
 Method: "DELETE"
 Payload:
+
+---Reset badge
+http://my-drupal-installation/services_module_endpoint/push_notifications/{token}
+Method: "PUT"
+Payload:
