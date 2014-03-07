@@ -337,13 +337,21 @@ function push_notifications_reset_badge_by_token($token) {
 /**
  * Get badge by token
  */
-function push_notifications_get_badge_by_token($token = '') {
-  $query = db_select('push_notifications_badge', 'pnb');
-  $query->condition('pnb.token', $token);
-  $query->addField('pnb', 'badge');
-  $result = $query->execute();
-
-  return $result->fetchField();
+function push_notifications_get_badge_by_token($token) {
+  if (!empty($token)) {
+    $query = db_select('push_notifications_badge', 'pnb');
+    $query->condition('pnb.token', $token);
+    $query->addField('pnb', 'badge');
+    $result = $query->execute();
+    $badge = $result->fetchField();
+    if ($badge) {
+      return $badge;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
 }
 
 /**
@@ -605,7 +613,7 @@ function push_notifications_send_push_message($tokens, $message) {
   if (!empty($tokens_ios)) {
     // Convert the payload into the correct format for APNS.
     $payload_apns = array('aps' => $payload);
-    
+
     // Debug 
     push_notifications_debug('Payload apns', $payload_apns);
 
@@ -668,6 +676,15 @@ function push_notifications_apns_send_message($tokens, $payload) {
   if (!isset($payload_apns['aps']['sound'])) {
     $payload_apns['aps']['sound'] = PUSH_NOTIFICATIONS_APNS_NOTIFICATION_SOUND;
   }
+  // Set the default sound if no sound was set.
+  if (!isset($payload_apns['aps']['badge'])) {
+    $payload_apns['aps']['badge'] = 0;
+  }
+
+  foreach ($tokens as $token) {
+    $payload_apns['aps']['badge'] = push_notifications_get_badge_by_token($token);
+    $payloads[$token] = $payload_apns;
+  }
 
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
@@ -681,7 +698,10 @@ function push_notifications_apns_send_message($tokens, $payload) {
 
   // Send a push notification to every recipient.
   $stream_counter = 0;
+
   foreach ($tokens as $token) {
+
+    $p = json_encode($payloads[$token]);
     // Open an apns connection, if necessary.
     if ($stream_counter == 0) {
       $apns = push_notifications_open_apns();
@@ -691,9 +711,11 @@ function push_notifications_apns_send_message($tokens, $payload) {
       }
     }
     $stream_counter++;
-
     $result['count_attempted'] ++;
-    $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . chr(0) . chr(strlen($payload_apns)) . $payload_apns;
+
+    // APN message
+    $apns_message = chr(0) . chr(0) . chr(32) . pack('H*', $token) . chr(0) . chr(strlen($p)) . $p;
+
     // Write the payload to the currently active streaming connection.
     $success = fwrite($apns, $apns_message);
     if ($success) {
