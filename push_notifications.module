@@ -682,10 +682,10 @@ function push_notifications_apns_send_message($tokens, $payload) {
   }
 
   foreach ($tokens as $token) {
-    $payload_apns['aps']['badge'] = push_notifications_get_badge_by_token($token);
+    $payload_apns['aps']['badge'] = (int) push_notifications_get_badge_by_token($token);
     $payloads[$token] = $payload_apns;
   }
-
+  
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
 
