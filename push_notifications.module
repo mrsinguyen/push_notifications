@@ -299,7 +299,7 @@ function push_notifications_find_token($token = '', $uid = '', $exclude = FALSE)
  */
 function push_notifications_update_badge_by_token($tokens) {
   $tokens = array_filter(explode(',', $tokens));
-  push_notifications_debug('Tokens update', $tokens);
+  push_notifications_debug('Tokens updated', $tokens);
   foreach ($tokens as $v) {
     $v = trim($v);
     push_notifications_update_badge($v);
@@ -570,9 +570,13 @@ function push_notifications_send_message($recipients, $message) {
  *   Payload to send.
  */
 function push_notifications_send_push_message($tokens, $message) {
+  $tokens = array_filter(explode(',', $tokens));
   if (!is_array($tokens) || !is_string($message)) {
     return FALSE;
   }
+  // Debug
+  push_notifications_debug('$message by rules: payload', $message);
+  push_notifications_debug('$tokens by rules: payload', $tokens);
 
   // Let modules modify the message before it is sent.
   foreach (module_implements('push_notifications_send_push_message') as $module) {
@@ -598,13 +602,14 @@ function push_notifications_send_push_message($tokens, $message) {
   $tokens_ios = array();
   $tokens_android = array();
   foreach ($tokens as $token) {
-    switch ($token['type']) {
+    $type = push_notifications_get_type_by_token($token);
+    switch ($type) {
       case PUSH_NOTIFICATIONS_TYPE_ID_IOS:
-        $tokens_ios[] = $token['token'];
+        $tokens_ios[] = trim($token);
         break;
 
       case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID:
-        $tokens_android[] = $token['token'];
+        $tokens_android[] = trim($token);
         break;
     }
   }
@@ -614,10 +619,10 @@ function push_notifications_send_push_message($tokens, $message) {
     // Convert the payload into the correct format for APNS.
     $payload_apns = array('aps' => $payload);
 
-    // Debug 
-    push_notifications_debug('Payload apns', $payload_apns);
-
     $result = push_notifications_apns_send_message($tokens_ios, $payload_apns);
+
+    // Debug
+    push_notifications_debug('Send push (iOS) by rules: payload', $payload_apns);
   }
   // Send payload to Android recipients if configured correctly.
   if (!empty($tokens_android) && ((PUSH_NOTIFICATIONS_C2DM_USERNAME && PUSH_NOTIFICATIONS_C2DM_PASSWORD) || PUSH_NOTIFICATIONS_GCM_API_KEY)) {
@@ -685,7 +690,7 @@ function push_notifications_apns_send_message($tokens, $payload) {
     $payload_apns['aps']['badge'] = (int) push_notifications_get_badge_by_token($token);
     $payloads[$token] = $payload_apns;
   }
-  
+
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
 
@@ -700,7 +705,7 @@ function push_notifications_apns_send_message($tokens, $payload) {
   $stream_counter = 0;
 
   foreach ($tokens as $token) {
-
+    $token = trim($token);
     $p = json_encode($payloads[$token]);
     // Open an apns connection, if necessary.
     if ($stream_counter == 0) {
@@ -1330,4 +1335,21 @@ function push_notifications_get_badge_tokens() {
   $tokens = substr($tokens, 0, strlen($tokens) - 1);
 
   return $tokens;
+}
+
+/**
+ * 
+ * @param type $token
+ * @return type
+ */
+function push_notifications_get_type_by_token($token) {
+  if (!empty($token)) {
+    $query = db_select('push_notifications_tokens', 'pnt');
+    $query->condition('pnt.token', $token);
+    $query->addField('pnt', 'type');
+    $result = $query->execute();
+    $type = $result->fetchField();
+  }
+
+  return $type;
 }

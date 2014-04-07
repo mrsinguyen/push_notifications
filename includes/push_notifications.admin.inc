@@ -464,9 +464,9 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
       drupal_set_message($result['message'], $dsm_type);
 
       // Debug payload ios
-      push_notifications_debug('Send push (iOS): payload', $payload_apns);
+      //push_notifications_debug('Send push (iOS): payload', $payload_apns);
       // Debug token ios
-      push_notifications_debug('Token iOS', $tokens_ios);
+      //push_notifications_debug('Token iOS', $tokens_ios);
     } else {
       drupal_set_message(t('No iOS recipients found, potentially for this language.'));
     }
