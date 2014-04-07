@@ -614,14 +614,15 @@ function push_notifications_send_push_message($tokens, $message) {
   $tokens_ios = array();
   $tokens_android = array();
   foreach ($tokens as $token) {
+    $token = trim($token);
     $type = push_notifications_get_type_by_token($token);
     switch ($type) {
       case PUSH_NOTIFICATIONS_TYPE_ID_IOS:
-        $tokens_ios[] = trim($token);
+        $tokens_ios[] = $token;
         break;
 
       case PUSH_NOTIFICATIONS_TYPE_ID_ANDROID:
-        $tokens_android[] = trim($token);
+        $tokens_android[] = $token;
         break;
     }
   }
@@ -634,18 +635,26 @@ function push_notifications_send_push_message($tokens, $message) {
     $result = push_notifications_apns_send_message($tokens_ios, $payload_apns);
 
     // Debug
-    push_notifications_debug('Send push (iOS) by rules: payload', $payload_apns);
+    push_notifications_debug('$result by rules (iOs): payload', $result);
   }
+  // debug
+  push_notifications_debug('$tokens_ios', $tokens_ios);
+  // debug
+  push_notifications_debug('$tokens_android', $tokens_android);
   // Send payload to Android recipients if configured correctly.
   if (!empty($tokens_android) && ((PUSH_NOTIFICATIONS_C2DM_USERNAME && PUSH_NOTIFICATIONS_C2DM_PASSWORD) || PUSH_NOTIFICATIONS_GCM_API_KEY)) {
     // Determine which method to use for Google push notifications.
     switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
         $result = push_notifications_c2dm_send_message($tokens_android, $payload);
+        // Debug
+        push_notifications_debug('$result by rules (g2dm): payload', $result);
         break;
 
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
         $result = push_notifications_gcm_send_message($tokens_android, $payload);
+        // Debug
+        push_notifications_debug('$result by rules (gcm): payload', $result);
         break;
     }
   }
@@ -1356,9 +1365,10 @@ function push_notifications_get_badge_tokens() {
  */
 function push_notifications_get_type_by_token($token) {
   if (!empty($token)) {
+    // Select all tokens for this user.
     $query = db_select('push_notifications_tokens', 'pnt');
-    $query->condition('pnt.token', $token);
-    $query->addField('pnt', 'type');
+    $query->fields('pnt', array('type'));
+    $query->condition('pnt.token', $token, '=');
     $result = $query->execute();
     $type = $result->fetchField();
   }
