@@ -714,7 +714,10 @@ function push_notifications_apns_send_message($tokens, $payload) {
 
   // JSON-encode the payload.
   $payload_apns = json_encode($payload_apns);
-
+  
+  // Debug
+  push_notifications_debug('$payload_apns (iOS)', $payload_apns);
+  
   $result = array(
     'count_attempted' => 0,
     'count_success' => 0,
@@ -838,7 +841,9 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
   if (!is_array($tokens) || empty($payload) || (is_array($tokens) && empty($tokens))) {
     return FALSE;
   }
-
+  // Debug
+  push_notifications_debug('$payload (c2dm)', $payload);
+  
   // Determine an updated authentication token.
   // Google is very vague about how often this token changes,
   // so we'll just get a new token every time.
@@ -948,7 +953,8 @@ function push_notifications_gcm_send_message($tokens, $payload) {
   if (!is_array($tokens) || empty($payload) || (is_array($tokens) && empty($tokens))) {
     return FALSE;
   }
-
+  // Debug
+  push_notifications_debug('$payload (gcm)', $payload);
   // Define an array of result values.
   $result = array(
     'count_attempted' => 0,
