@@ -841,8 +841,6 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
   if (!is_array($tokens) || empty($payload) || (is_array($tokens) && empty($tokens))) {
     return FALSE;
   }
-  // Debug
-  push_notifications_debug('$payload (c2dm)', $payload);
   
   // Determine an updated authentication token.
   // Google is very vague about how often this token changes,
@@ -881,7 +879,8 @@ function push_notifications_c2dm_send_message($tokens, $payload) {
     $data['registration_id'] = $token;
     $data['collapse_key'] = time();
     $data['data.message'] = $payload['alert'];
-
+    // Debug
+    push_notifications_debug('$data (c2dm)', $data);
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, PUSH_NOTIFICATIONS_C2DM_SERVER_POST_URL);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -953,8 +952,6 @@ function push_notifications_gcm_send_message($tokens, $payload) {
   if (!is_array($tokens) || empty($payload) || (is_array($tokens) && empty($tokens))) {
     return FALSE;
   }
-  // Debug
-  push_notifications_debug('$payload (gcm)', $payload);
   // Define an array of result values.
   $result = array(
     'count_attempted' => 0,
@@ -990,7 +987,9 @@ function push_notifications_gcm_send_message($tokens, $payload) {
     $data['registration_ids'] = $bundle_tokens;
     $data['collapse_key'] = (string) time();
     $data['data']['message'] = $payload['alert'];
-
+    
+     // Debug
+    push_notifications_debug('$data (gcm)', $data);
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_URL, PUSH_NOTIFICATIONS_GCM_SERVER_POST_URL);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
