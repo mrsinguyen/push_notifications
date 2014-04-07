@@ -36,6 +36,17 @@ function push_notifications_rules_action_info() {
         ),
       ),
     ),
+    'push_notifications_reset_badge_by_tokens' => array(
+      'label' => t('Reset badge by tokens'),
+      'group' => t('Push notification'),
+      'parameter' => array(
+        'tokens' => array(
+          'type' => 'text',
+          'label' => t('Tokens'),
+          'description' => t('Registration IDs, comma-separated'),
+        ),
+      ),
+    ),
   );
   return $items;
 }

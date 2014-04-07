@@ -307,6 +307,18 @@ function push_notifications_update_badge_by_token($tokens) {
 }
 
 /**
+ * Reset badge by token
+ */
+function push_notifications_reset_badge_by_tokens($tokens) {
+  $tokens = array_filter(explode(',', $tokens));
+  push_notifications_debug('Tokens reseted', $tokens);
+  foreach ($tokens as $v) {
+    $v = trim($v);
+    push_notifications_reset_badge_by_token($v);
+  }
+}
+
+/**
  * Update badge by token
  */
 function push_notifications_update_badge($token) {
