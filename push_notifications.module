@@ -1005,6 +1005,7 @@ function push_notifications_gcm_send_message($tokens, $payload) {
 
     $response = FALSE;
     if (isset($response_raw)) {
+      push_notifications_debug('$response_raw (gcm)', $response_raw);
       $response = json_decode($response_raw);
     }
 
