@@ -988,7 +988,7 @@ function push_notifications_gcm_send_message($tokens, $payload) {
     $data['collapse_key'] = (string) time();
     $data['delay_while_idle'] = true;
     $data['data']['message'] = $payload['alert'];
-    $data['time_to_live'] = 3;
+    //$data['time_to_live'] = 3;
 
     // Debug
     push_notifications_debug('$data (gcm)', $data);
