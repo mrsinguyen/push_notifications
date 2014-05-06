@@ -656,7 +656,7 @@ function push_notifications_send_push_message($tokens, $message) {
       	foreach ($tokens_android as $token) {
       		// Add msgcnt
       		$payload['msgcnt'] = (int) push_notifications_get_badge_by_token($token);
-      		$result = push_notifications_gcm_send_message($token, $payload);
+      		$result = push_notifications_gcm_send_message(array($token), $payload);
       		// Debug
       		push_notifications_debug('$result by rules (gcm): payload for device ' . $token, $result);
       	}
