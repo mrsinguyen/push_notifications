@@ -653,6 +653,7 @@ function push_notifications_send_push_message($tokens, $message) {
 
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
       	// Try to send for each device
+      	$payload['title'] = variable_get('android_app_name', 'UQ Connections');
       	foreach ($tokens_android as $token) {
       		// Add msgcnt
       		$payload['msgcnt'] = (int) push_notifications_get_badge_by_token($token);
