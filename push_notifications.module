@@ -652,9 +652,14 @@ function push_notifications_send_push_message($tokens, $message) {
         break;
 
       case PUSH_NOTIFICATIONS_GOOGLE_TYPE_GCM:
-        $result = push_notifications_gcm_send_message($tokens_android, $payload);
-        // Debug
-        push_notifications_debug('$result by rules (gcm): payload', $result);
+      	// Try to send for each device
+      	foreach ($tokens_android as $token) {
+      		// Add msgcnt
+      		$payload['msgcnt'] = (int) push_notifications_get_badge_by_token($token);
+      		$result = push_notifications_gcm_send_message($token, $payload);
+      		// Debug
+      		push_notifications_debug('$result by rules (gcm): payload for device ' . $token, $result);
+      	}
         break;
     }
   }
@@ -988,7 +993,6 @@ function push_notifications_gcm_send_message($tokens, $payload) {
     $data['collapse_key'] = (string) time();
     $data['delay_while_idle'] = true;
     $data['data']['message'] = $payload['alert'];
-    $data['data']['msgcnt'] = 10;
     //$data['time_to_live'] = 3;
 
     // Debug
