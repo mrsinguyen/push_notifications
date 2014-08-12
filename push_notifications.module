@@ -1363,14 +1363,8 @@ function push_notifications_tokens($type, $tokens, array $data = array(), array 
  * 
  */
 function push_notifications_get_badge_tokens() {
-  $tokens = '';
-  $result = db_query("SELECT token FROM {push_notifications_badge}");
-  while ($row = $result->fetchAssoc()) {
-    $tokens .= $row['token'] . ", ";
-  }
-  $tokens = substr($tokens, 0, strlen($tokens) - 1);
-
-  return $tokens;
+  $tokens = db_query("SELECT token FROM {push_notifications_badge}")->fetchAllKeyed();
+  return implode(',', array_keys($tokens));
 }
 
 /**
