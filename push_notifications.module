@@ -722,7 +722,7 @@ function push_notifications_apns_send_message($tokens, $payload) {
   $payload_apns = json_encode($payload_apns);
 
   // Debug
-  push_notifications_debug('$payload_apns (iOS)', $payload_apns);
+  push_notifications_debug('$payload_apns (iOS)', $payloads);
 
   $result = array(
     'count_attempted' => 0,
