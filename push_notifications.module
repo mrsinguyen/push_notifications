@@ -969,6 +969,9 @@ function push_notifications_gcm_send_message($tokens, $payload) {
   $headers[] = 'Content-Type:application/json';
   $headers[] = 'Authorization:key=' . PUSH_NOTIFICATIONS_GCM_API_KEY;
 
+  // Check of many token bundles can be build.
+  $result['count_attempted'] = count($tokens);
+
   foreach ($tokens as $token) {
     // Convert the payload into the correct format for C2DM payloads.
     // Prefill an array with values from other modules first.
