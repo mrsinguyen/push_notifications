@@ -459,6 +459,8 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
     if (!empty($tokens_ios)) {
       // Convert the payload into the correct format for APNS.
       $payload_apns = array('aps' => $payload);
+      // Update tokens
+      push_notifications_update_badge_by_token($tokens_ios);
       $result = push_notifications_apns_send_message($tokens_ios, $payload_apns);
       $dsm_type = ($result['success']) ? 'status' : 'error';
       drupal_set_message($result['message'], $dsm_type);
@@ -481,6 +483,8 @@ function push_notifications_mass_push_form_submit($form, &$form_state) {
       push_notifications_debug('Send push (Android): payload', $payload);
       // Debug token android
       push_notifications_debug('Token Android', $tokens_android);
+      // Update tokens
+      push_notifications_update_badge_by_token($tokens_android);
       // Determine which method to use for Google push notifications.
       switch (PUSH_NOTIFICATIONS_GOOGLE_TYPE) {
         case PUSH_NOTIFICATIONS_GOOGLE_TYPE_C2DM:
