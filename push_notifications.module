@@ -995,6 +995,9 @@ function push_notifications_gcm_send_message($tokens, $payload) {
     $data['delay_while_idle'] = true;
     $data['data']['message'] = $payload['alert'];
     $data['data']['title'] = variable_get('android_app_name', 'UQ Connections');
+    if (!$data['data']['msgcnt']) {
+      $data['data']['msgcnt'] = (int) push_notifications_get_badge_by_token($bundle_tokens);
+    }
     //$data['time_to_live'] = 3;
 
     // Debug
