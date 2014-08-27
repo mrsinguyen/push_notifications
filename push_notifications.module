@@ -979,7 +979,7 @@ function push_notifications_gcm_send_message($tokens, $payload) {
       }
     }
     // Fill the default values required for each payload.
-    $data['registration_ids'] = $token;
+    $data['registration_ids'] = array($token);
     $data['collapse_key'] = "optional";
     $data['delay_while_idle'] = true;
     $data['data']['message'] = $payload['alert'];
